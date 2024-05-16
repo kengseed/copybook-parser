@@ -11,21 +11,28 @@ def getFiles(directory):
     return files
 
 
-def findCopyBookFields(children, data):
+def findCopyBookFields(children, data, fieldGroup):
     for field in children:
         if type(field) != copybook.Field:
             print(
-                ("Field Level: {level}; Name: {name}").format(
-                    level=field.level, name=field.name
+                ("FieldLevel: {level}; FieldName: {name}; FieldType: {type}").format(
+                    level=field.level, name=field.name, type=type(field)
                 )
             )
-            findCopyBookFields(field.children, data)
+
+            name = (
+                (fieldGroup + "." + field.name if fieldGroup != "" else field.name)
+                if type(field) == copybook.FieldGroup
+                else ""
+            )
+            findCopyBookFields(field.children, data, name)
         else:
             data.append(
                 {
                     "Field name": field.name,
                     "Field type": field.datatype,
                     "Field length": field.length,
+                    "Field group": fieldGroup,
                     "Field level": field.level,
                     "Redefine target": field.redefine_target,
                     "Start position": field.start_pos,
@@ -36,7 +43,7 @@ def findCopyBookFields(children, data):
 def extractCopyBookFields(copybookFile):
     data = []
     root = copybook.parse_file(copybookFile)
-    findCopyBookFields(root.children, data)
+    findCopyBookFields(root.children, data, "")
 
     return data
 
